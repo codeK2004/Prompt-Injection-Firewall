@@ -51,7 +51,11 @@ def get_analytics(db: Session = Depends(get_db)):
 # -----------------------------
 # WEBSOCKET REAL-TIME SUPPORT
 # -----------------------------
+# -----------------------------
+# WEBSOCKET REAL-TIME SUPPORT
+# -----------------------------
 active_connections: List[WebSocket] = []
+active_log_connections: List[WebSocket] = []
 
 @router.websocket("/ws/analytics")
 async def websocket_endpoint(websocket: WebSocket):
@@ -63,9 +67,40 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         active_connections.remove(websocket)
 
+@router.websocket("/ws/logs")
+async def websocket_logs_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    active_log_connections.append(websocket)
+    print(f"DEBUG: Client connected to /ws/logs. Total clients: {len(active_log_connections)}")
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        active_log_connections.remove(websocket)
+        print(f"DEBUG: Client disconnected from /ws/logs. Total clients: {len(active_log_connections)}")
+
 # -----------------------------
 # BROADCAST FUNCTION
 # -----------------------------
 async def broadcast_update(data):
     for connection in active_connections:
-        await connection.send_json(data)
+        try:
+            await connection.send_json(data)
+        except Exception as e:
+            print(f"Error broadcasting analytics: {e}")
+            try:
+                active_connections.remove(connection)
+            except ValueError:
+                pass
+
+async def broadcast_new_log(log_data):
+    print(f"DEBUG: Broadcasting new log to {len(active_log_connections)} clients. Data: {log_data}")
+    for connection in active_log_connections:
+        try:
+            await connection.send_json(log_data)
+        except Exception as e:
+             print(f"Error broadcasting log: {e}")
+             try:
+                 active_log_connections.remove(connection)
+             except ValueError:
+                 pass

@@ -7,98 +7,109 @@ import {
   ResponsiveContainer,
   Legend
 } from "recharts";
+import { Shield, AlertTriangle, Zap } from 'lucide-react';
 
 export default function AnalyticsDashboard() {
-  const [data, setData] = useState(null);
+  const [data, setData] = useState({
+    total_prompts: 0,
+    allowed: 0,
+    blocked: 0,
+    average_rule_score: 0,
+    average_ai_score: 0,
+    daily_trend: []
+  });
 
   useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8000/ws/analytics");
+    // 1. Fetch initial data via REST API
+    fetch('/analytics') // Proxy handles this now
+      .then(res => res.json())
+      .then(data => setData(data))
+      .catch(err => console.error("Failed to fetch initial analytics:", err));
 
+    // 2. Subscribe to real-time updates via WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/ws/analytics`;
+    const ws = new WebSocket(wsUrl);
+
+    ws.onopen = () => console.log("Connected to Analytics WS");
     ws.onmessage = (event) => {
-      const analytics = JSON.parse(event.data);
-      setData(analytics);
+      try {
+        const analytics = JSON.parse(event.data);
+        setData(analytics);
+      } catch (e) {
+        console.error("Failed to parse analytics data", e);
+      }
     };
 
     return () => ws.close();
   }, []);
 
-  if (!data) return (
-    <div className="card" style={{ textAlign: "center", padding: "3rem" }}>
-      <p style={{ color: "var(--text-secondary)" }}>Connecting to live analytics...</p>
-    </div>
-  );
-
   const pieData = [
-    { name: "Allowed", value: data.allowed },
-    { name: "Blocked", value: data.blocked }
+    { name: "Allowed", value: data.allowed || 0 },
+    { name: "Blocked", value: data.blocked || 0 }
   ];
 
-  const COLORS = ["#22c55e", "#ef4444"];
+  const COLORS = ["var(--success)", "var(--danger)"];
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", height: '100%' }}>
       {/* Stat Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
-        <div className="card" style={{ textAlign: "center" }}>
-          <div style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>Total Scans</div>
-          <div style={{ fontSize: "2rem", fontWeight: "bold" }}>{data.total_prompts}</div>
+
+        <div className="glass-panel" style={{ padding: "1.5rem", display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "0.875rem", display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Shield size={16} color="var(--primary)" /> Total Scans
+          </div>
+          <div style={{ fontSize: "2rem", fontWeight: "bold", color: "var(--text-main)" }}>
+            {data.total_prompts}
+          </div>
         </div>
-        <div className="card" style={{ textAlign: "center" }}>
-          <div style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>Avg Rule Score</div>
-          <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#f59e0b" }}>{data.average_rule_score}</div>
+
+        <div className="glass-panel" style={{ padding: "1.5rem", display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "0.875rem", display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Zap size={16} color="var(--warning)" /> Avg Rule Score
+          </div>
+          <div style={{ fontSize: "2rem", fontWeight: "bold", color: "var(--warning)" }}>
+            {data.average_rule_score}
+          </div>
         </div>
-        <div className="card" style={{ textAlign: "center" }}>
-          <div style={{ color: "var(--text-secondary)", fontSize: "0.875rem" }}>Avg AI Risk</div>
-          <div style={{ fontSize: "2rem", fontWeight: "bold", color: "#ec4899" }}>{data.average_ai_score}</div>
+
+        <div className="glass-panel" style={{ padding: "1.5rem", display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ color: "var(--text-muted)", fontSize: "0.875rem", display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <AlertTriangle size={16} color="var(--danger)" /> Avg AI Risk
+          </div>
+          <div style={{ fontSize: "2rem", fontWeight: "bold", color: "var(--danger)" }}>
+            {data.average_ai_score}
+          </div>
         </div>
+
       </div>
 
       {/* Charts Grid */}
-      <div className="grid-layout">
-        <div className="card">
-          <h3 style={{ marginBottom: "1.5rem", textAlign: "center" }}>Traffic Decision Distribution</h3>
-          <div style={{ height: "300px" }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index]} stroke="var(--bg-card)" strokeWidth={2} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)", borderRadius: "0.5rem" }}
-                  itemStyle={{ color: "var(--text-primary)" }}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="card">
-          <h3 style={{ marginBottom: "1.5rem", textAlign: "center" }}>Daily Scan Volume</h3>
-          <div style={{ height: "300px" }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.daily_trend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" opacity={0.5} />
-                <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
-                <YAxis stroke="var(--text-secondary)" fontSize={12} tickLine={false} axisLine={false} />
-                <Tooltip
-                  cursor={{ fill: 'rgba(255,255,255,0.05)' }}
-                  contentStyle={{ backgroundColor: "var(--bg-card)", borderColor: "var(--border-color)", borderRadius: "0.5rem" }}
-                  itemStyle={{ color: "var(--text-primary)" }}
-                />
-                <Bar dataKey="count" fill="var(--accent-primary)" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', flex: 1 }}>
+        <div style={{ height: "250px", width: '100%' }}>
+          <h4 style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>Traffic Distribution</h4>
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={5}
+                stroke="none"
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{ backgroundColor: "var(--bg-panel)", borderColor: "var(--border)", borderRadius: "var(--radius-sm)", color: "var(--text-main)" }}
+                itemStyle={{ color: "var(--text-main)" }}
+              />
+              <Legend verticalAlign="bottom" height={36} />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
     </div>

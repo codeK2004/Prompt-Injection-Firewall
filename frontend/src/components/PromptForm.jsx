@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { analyzePrompt } from "../api";
+import { Send, Trash2, ShieldCheck, Loader2 } from "lucide-react";
 
 export default function PromptForm({ setResult }) {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!prompt.trim()) return;
 
     setLoading(true);
+    setResult(null); // Clear previous result
     try {
       const result = await analyzePrompt(prompt);
       setResult(result);
@@ -19,41 +22,69 @@ export default function PromptForm({ setResult }) {
     }
   };
 
+  const handleClear = () => {
+    setPrompt("");
+    setResult(null);
+  };
+
   return (
-    <div className="card">
-      <h2 style={{ fontSize: "1.25rem", marginBottom: "1rem" }}>📝 Test Prompt</h2>
-      <textarea
-        rows="6"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter a prompt to test the firewall (e.g. 'Ignore previous instructions...')"
-        style={{
-          width: "100%",
-          backgroundColor: "#0f172a",
-          border: "1px solid var(--border-color)",
-          borderRadius: "0.5rem",
-          color: "var(--text-primary)",
-          padding: "1rem",
-          fontSize: "1rem",
-          marginBottom: "1rem",
-          resize: "vertical",
-          fontFamily: "inherit"
-        }}
-      />
-      <div style={{ display: "flex", justifyContent: "flex-end" }}>
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
+    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ position: 'relative' }}>
+        <textarea
+          className="input-base"
+          rows="6"
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          placeholder="Enter a prompt to simulate an injection attack..."
           style={{
-            backgroundColor: "var(--accent-primary)",
-            color: "white",
-            opacity: loading ? 0.7 : 1,
-            cursor: loading ? "wait" : "pointer"
+            minHeight: '150px',
+            resize: 'vertical',
+            fontFamily: 'var(--font-mono)',
+            fontSize: '0.9rem',
+            lineHeight: '1.6'
           }}
+        />
+        <div style={{
+          position: 'absolute',
+          bottom: '1rem',
+          right: '1rem',
+          fontSize: '0.75rem',
+          color: 'var(--text-muted)'
+        }}>
+          {prompt.length} chars
+        </div>
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <button
+          type="button"
+          onClick={handleClear}
+          className="btn btn-ghost"
+          disabled={!prompt && !loading}
         >
-          {loading ? "Analyzing..." : "Analyze Prompt 🛡️"}
+          <Trash2 size={16} />
+          Clear
+        </button>
+
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={loading || !prompt.trim()}
+          style={{ minWidth: '140px' }}
+        >
+          {loading ? (
+            <>
+              <Loader2 size={18} className="animate-spin" />
+              Scanning...
+            </>
+          ) : (
+            <>
+              <ShieldCheck size={18} />
+              Scan Payload
+            </>
+          )}
         </button>
       </div>
-    </div>
+    </form>
   );
 }

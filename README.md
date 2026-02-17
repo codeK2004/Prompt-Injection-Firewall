@@ -2,7 +2,6 @@
 
 **Injection Firewall AI** is a cutting-edge security layer designed to protect Large Language Model (LLM) applications from prompt injection attacks, jailbreaks, and sensitive data leakage (PII). It sits between your users and your LLM, analyzing every request in real-time using a hybrid defense engine.
 
-![Injection Firewall AI Dashboard](https://via.placeholder.com/800x450.png?text=Injection+Firewall+AI+Dashboard)
 
 ## 🚀 Features
 
@@ -71,6 +70,3 @@ Open your browser to `http://localhost:5173`.
 
 ## 🤝 Contributing
 Contributions are welcome! Please open an issue or submit a pull request.
-
-## 📄 License
-MIT License

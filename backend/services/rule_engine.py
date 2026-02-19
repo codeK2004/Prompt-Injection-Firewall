@@ -6,12 +6,47 @@ patterns = [
     "reveal system prompt",
     "bypass security",
     "show api key",
-    "how to hack",
     "jailbreak",
+    "unfiltered",
+    "developer mode",
+    
+    # Hacking & Illegal
+    "illegal hacking",
+    "how to hack",
+    "hack", 
+    "hacking",
+    "exploit vulnerability",
+    "sql injection",
+    "xss",
+    "ddos",
+    "malware",
+    "ransomware",
+    "keylogger",
+    "steal password",
+    "crack password",
+    
+    # Social Engineering / PII Requests
+    "give me phone number",
+    "give me email",
+    "reveal phone number",
+    "reveal email",
+    "give me address",
+    "reveal address",
+    "give me aadhar",
+    "give me credit card",
+    "give me password",
+    "employee details",
+    
+    # Password Generation / manipulation
+    "generate password",
+    "create password",
+    "password script",
+    "password generator",
+    "random password",
+    "make a password",
     
     # PII / Sensitive Data
     "reveal the password",
-    "give aadhar number",
     "contact number",
     "phone number",
     "mobile number",
@@ -25,7 +60,10 @@ patterns = [
     # Harmful Intent
     "make a bomb",
     "kill someone",
-    "steal data"
+    "steal data",
+    "suicide",
+    "terrorist",
+    "weapon design"
 ]
 
 # Simple regex for generic phone numbers and emails to catch data leakage *attempts*

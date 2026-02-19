@@ -6,6 +6,7 @@ import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import LiveThreatMonitor from "./components/LiveThreatMonitor";
 import HistoryLog from "./components/HistoryLog";
 import Settings from "./components/Settings";
+import AttackSimulator from "./components/AttackSimulator";
 import { ShieldAlert, Activity } from "lucide-react";
 
 function App() {
@@ -14,7 +15,7 @@ function App() {
 
   // Dashboard View Component
   const DashboardView = () => (
-    <div className="container">
+    <div className="container" style={{ paddingBottom: '2rem' }}>
       <header className="header" style={{ border: 'none', textAlign: 'left', padding: '2rem 0 1rem' }}>
         <h1 style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
           Security <span style={{ color: 'var(--primary)' }}>Dashboard</span>
@@ -48,6 +49,9 @@ function App() {
           </div>
         </section>
       </div>
+
+      {/* Attack Simulator Section */}
+      <AttackSimulator />
     </div>
   );
 

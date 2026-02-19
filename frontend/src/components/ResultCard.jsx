@@ -97,15 +97,20 @@ export default function ResultCard({ result }) {
 
         <div style={{ background: 'var(--bg-card)', padding: '1.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>AI Risk Analysis</span>
-            <span style={{ fontWeight: '600' }}>{result.ai_score}</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Risk Assessment</span>
+            <span style={{
+              fontWeight: 'bold',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '4px',
+              background: result.decision === "BLOCK" ? 'rgba(239, 68, 68, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+              color: result.decision === "BLOCK" ? 'var(--danger)' : 'var(--success)',
+              fontSize: '0.9rem'
+            }}>
+              {result.risk_label || (result.decision === "BLOCK" ? "MALICIOUS" : "SAFE")}
+            </span>
           </div>
-          <div style={{ height: '4px', background: 'var(--bg-app)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{
-              width: `${Math.min(parseInt(result.ai_score) || 0, 100)}%`,
-              height: '100%',
-              background: parseInt(result.ai_score) > 50 ? 'var(--danger)' : 'var(--success)'
-            }} />
+          <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            Based on Rule Score analysis.
           </div>
         </div>
       </div>

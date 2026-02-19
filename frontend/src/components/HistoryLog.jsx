@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ShieldCheck, ShieldAlert, Search } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Search, FileDown, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function HistoryLog() {
@@ -21,6 +21,40 @@ export default function HistoryLog() {
         }
     };
 
+    const downloadCSV = () => {
+        if (logs.length === 0) return;
+
+        const headers = ['Timestamp', 'Decision', 'Rule Score', 'Risk Label', 'Prompt'];
+        const csvContent = [
+            headers.join(','),
+            ...logs.map(log => {
+                const riskLabel = log.rule_score >= 80 ? 'MALICIOUS' : log.rule_score >= 40 ? 'SUSPICIOUS' : 'SAFE';
+                const cleanPrompt = log.prompt.replace(/"/g, '""'); // Escape quotes
+                return `"${log.timestamp}","${log.decision}","${log.rule_score}","${riskLabel}","${cleanPrompt}"`;
+            })
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `security_audit_${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const clearHistory = async () => {
+        if (!confirm("Are you sure you want to clear all history? This cannot be undone.")) return;
+
+        try {
+            await fetch('http://localhost:8000/history', { method: 'DELETE' });
+            setLogs([]);
+        } catch (err) {
+            console.error("Failed to clear history:", err);
+        }
+    };
+
     const filteredLogs = logs.filter(log => {
         const matchesFilter = filter === 'ALL' || log.decision === filter;
         const matchesSearch = log.prompt.toLowerCase().includes(searchTerm.toLowerCase());
@@ -33,6 +67,25 @@ export default function HistoryLog() {
                 <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Audit History</h1>
 
                 <div style={{ display: 'flex', gap: '1rem' }}>
+
+                    <button
+                        onClick={clearHistory}
+                        className="btn btn-danger"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <Trash2 size={16} />
+                        Clear History
+                    </button>
+
+                    <button
+                        onClick={downloadCSV}
+                        className="btn btn-cyber-blue"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                    >
+                        <FileDown size={16} />
+                        Export CSV
+                    </button>
+
                     <div style={{ position: 'relative' }}>
                         <Search size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                         <input
@@ -70,7 +123,7 @@ export default function HistoryLog() {
             <div className="glass-panel" style={{ flex: 1, padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{
                     display: 'grid',
-                    gridTemplateColumns: '80px 100px 1fr 100px 100px',
+                    gridTemplateColumns: '80px 100px 1fr 100px',
                     padding: '1rem',
                     background: 'rgba(0,0,0,0.2)',
                     borderBottom: '1px solid var(--border)',
@@ -82,7 +135,6 @@ export default function HistoryLog() {
                     <div>Time</div>
                     <div>Status</div>
                     <div>Payload</div>
-                    <div style={{ textAlign: 'center' }}>AI Score</div>
                     <div style={{ textAlign: 'center' }}>Rule Score</div>
                 </div>
 
@@ -94,7 +146,7 @@ export default function HistoryLog() {
                             animate={{ opacity: 1 }}
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: '80px 100px 1fr 100px 100px',
+                                gridTemplateColumns: '80px 100px 1fr 100px',
                                 padding: '1rem',
                                 borderBottom: '1px solid var(--border)',
                                 alignItems: 'center',
@@ -130,9 +182,6 @@ export default function HistoryLog() {
                                 color: 'var(--text-main)'
                             }}>
                                 {log.prompt}
-                            </div>
-                            <div style={{ textAlign: 'center', fontWeight: 'bold', color: log.ai_score > 70 ? 'var(--danger)' : 'var(--text-main)' }}>
-                                {log.ai_score}
                             </div>
                             <div style={{ textAlign: 'center', fontWeight: 'bold', color: 'var(--text-muted)' }}>
                                 {log.rule_score}

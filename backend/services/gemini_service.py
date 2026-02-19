@@ -9,7 +9,7 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 
 async def generate_response(prompt: str):
     # Using gemini-pro which is generally available, or fallback to the one in use if preferred
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key={API_KEY}"
 
     payload = {
         "contents": [{
@@ -17,7 +17,7 @@ async def generate_response(prompt: str):
         }]
     }
 
-    async with aiohttp.ClientSession() as session:
+    async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
         for attempt in range(3):
             try:
                 async with session.post(url, json=payload, timeout=10) as response:

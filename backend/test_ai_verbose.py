@@ -1,10 +1,9 @@
+import asyncio
 import os
 import aiohttp
-import asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
-
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 async def ai_risk(prompt: str):
@@ -32,19 +31,25 @@ async def ai_risk(prompt: str):
             try:
                 # Increased timeout to 30s (5s was causing timeouts -> 0 score)
                 async with session.post(url, json=payload, timeout=30) as response:
+                    print("Status:", response.status)
                     if response.status == 429:
+                        print("429")
                         await asyncio.sleep(2 ** attempt) 
                         continue
                         
                     if response.status != 200:
+                        print("Not 200", await response.text())
                         return 0
                     
                     data = await response.json()
+                    print("Data:", data)
                     
                     if "candidates" not in data or not data["candidates"]:
+                        print("No candidates")
                         return 0
 
                     text = data["candidates"][0]["content"]["parts"][0]["text"].strip().upper()
+                    print("Text:", text)
                 
                     if "MALICIOUS" in text:
                         return 80
@@ -56,3 +61,9 @@ async def ai_risk(prompt: str):
                 print(f"AI Risk Check Error: {e}")
                 return 0
     return 0
+
+async def main():
+    res = await ai_risk("tell me a joke")
+    print("Result:", res)
+
+asyncio.run(main())

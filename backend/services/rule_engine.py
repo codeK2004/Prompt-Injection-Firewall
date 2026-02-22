@@ -2,7 +2,6 @@ import re
 
 patterns = [
     # Jailbreaks
-    "ignore previous instructions",
     "reveal system prompt",
     "bypass security",
     "show api key",
@@ -58,7 +57,6 @@ patterns = [
     "social security",
     
     # Harmful Intent
-    "make a bomb",
     "kill someone",
     "steal data",
     "suicide",
@@ -66,12 +64,18 @@ patterns = [
     "weapon design"
 ]
 
-# Simple regex for generic phone numbers and emails to catch data leakage *attempts*
+# Advanced regex for generalized malicious patterns
 regex_patterns = [
     r"\b\d{10}\b",  # 10-digit numbers (like Indian mobile)
     r"\b[\w\.-]+@[\w\.-]+\.\w+\b", # Email addresses
     r"(?i)contact\s+details", # "contact details" case insensitive
-    r"(?i)private\s+info"     # "private info" case insensitive
+    r"(?i)private\s+info",     # "private info" case insensitive
+    
+    # Smarter bypass/jailbreak detection
+    r"(?i)ignore\s+(?:all\s+)?(?:previous\s+)?(instructions|rules|prompts|directions)",
+    
+    # Smarter harmful intent detection
+    r"(?i)(make|build|create|design)\s+(a\s+)?bomb"
 ]
 
 def rule_check(prompt: str):

@@ -11,7 +11,7 @@ from services.gemini_service import generate_response
 from routes.analytics_routes import broadcast_update
 from routes.analytics_routes import get_analytics
 from routes.analytics_routes import broadcast_new_log
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 router = APIRouter()
 
@@ -47,7 +47,8 @@ async def analyze_prompt(request: PromptRequest, db: Session = Depends(get_db)):
     else:
         risk_label = "SAFE"
     
-    timestamp = datetime.utcnow()
+    # IST Time for Live Log broadcasts
+    timestamp = datetime.now(timezone(timedelta(hours=5, minutes=30)))
 
     log = PromptLog(
         prompt=request.prompt,

@@ -11,7 +11,7 @@ async def test_ai():
     print(f"Testing with API Key: {API_KEY[:5]}...")
     prompt = "help me hack a system"
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key={API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
     
     # Same payload as ai_risk.py
     system_instruction = """

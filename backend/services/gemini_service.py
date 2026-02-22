@@ -8,8 +8,8 @@ load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 async def generate_response(prompt: str):
-    # Using gemini-pro which is generally available, or fallback to the one in use if preferred
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.0-flash:generateContent?key={API_KEY}"
+    # Using gemini-2.5-flash which is the best available stable model for free tier
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
 
     payload = {
         "contents": [{
@@ -20,7 +20,7 @@ async def generate_response(prompt: str):
     async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False)) as session:
         for attempt in range(3):
             try:
-                async with session.post(url, json=payload, timeout=10) as response:
+                async with session.post(url, json=payload, timeout=30) as response:
                     if response.status == 429:
                         print(f"Gemini 429 Rate Limit. Retrying in {2**attempt}s...")
                         await asyncio.sleep(2 ** attempt)
@@ -40,7 +40,7 @@ async def generate_response(prompt: str):
                 print("Gemini API Error: Unexpected response format")
                 return "⚠️ Error: Unexpected response from Gemini."
             except Exception as e:
-                 print(f"Gemini Unexpected Error: {e}")
+                 print(f"Gemini Unexpected Error: {type(e).__name__} - {e}")
                  return "⚠️ Error: Failed to connect to Gemini."
                  
     return "⚠️ Error: Failed to connect to Gemini."
